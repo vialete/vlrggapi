@@ -717,59 +717,12 @@ async def vlr_match_detail(match_id: str) -> dict:
         game_ids = _extract_game_ids(base_html)
         first_game_id = game_ids[0] if game_ids else None
 
-        performance_by_game: dict[str, dict] = {}
-        economy_by_game: dict[str, list[dict]] = {}
-
-        if game_ids:
-            tab_fetch_semaphore = asyncio.Semaphore(MATCH_DETAIL_TAB_FETCH_CONCURRENCY)
-
-            async def fetch_tab(game_id: str, tab: str):
-                async with tab_fetch_semaphore:
-                    return await _fetch_game_tab_html(
-                        client,
-                        base_url,
-                        game_id,
-                        tab,
-                        timeout=MATCH_DETAIL_TAB_FETCH_TIMEOUT,
-                    )
-
-            tab_results = await asyncio.gather(
-                *[
-                    fetch_tab(game_id, tab)
-                    for game_id in game_ids
-                    for tab in ("performance", "economy")
-                ]
-            )
-
-            for game_id, tab, tab_html in tab_results:
-                if tab_html is None:
-                    continue
-                if tab == "performance":
-                    performance_by_game[game_id] = {
-                        "kill_matrix": _parse_kill_matrix(tab_html),
-                        "advanced_stats": _parse_advanced_stats(tab_html),
-                    }
-                elif tab == "economy":
-                    economy_by_game[game_id] = _parse_economy(tab_html)
-
         event_info = _parse_event_info(base_html)
         header_info = _parse_match_header(base_html)
         teams = _parse_teams(base_html)
         streams, vods = _parse_streams_vods(base_html)
         maps = _parse_maps(base_html)
         h2h = _parse_head_to_head(base_html)
-
-        for index, map_data in enumerate(maps):
-            game_id = game_ids[index] if index < len(game_ids) else ""
-            map_data["performance"] = performance_by_game.get(
-                game_id, {"kill_matrix": [], "advanced_stats": []}
-            )
-            map_data["economy"] = economy_by_game.get(game_id, [])
-
-        first_game_performance = performance_by_game.get(
-            first_game_id or "", {"kill_matrix": [], "advanced_stats": []}
-        )
-        first_game_economy = economy_by_game.get(first_game_id or "", [])
 
         segment = {
             "match_id": match_id,
