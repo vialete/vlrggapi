@@ -735,20 +735,6 @@ async def vlr_match_detail(match_id: str) -> dict:
             "vods": vods,
             "maps": maps,
             "head_to_head": h2h,
-            "performance": {
-                "kill_matrix": first_game_performance["kill_matrix"],
-                "advanced_stats": first_game_performance["advanced_stats"],
-                "by_map": [
-                    {"game_id": game_id, **performance_by_game.get(game_id, {"kill_matrix": [], "advanced_stats": []})}
-                    for game_id in game_ids
-                ],
-            },
-            "economy": first_game_economy,
-            "economy_by_map": [
-                {"game_id": game_id, "rows": economy_by_game.get(game_id, [])}
-                for game_id in game_ids
-            ],
-        }
 
         data = {"data": {"status": http_status, "segments": [segment]}}
 
