@@ -735,7 +735,8 @@ async def vlr_match_detail(match_id: str) -> dict:
             "vods": vods,
             "maps": maps,
             "head_to_head": h2h,
-
+            }
+        
         data = {"data": {"status": http_status, "segments": [segment]}}
 
         live = _is_live(base_html)
